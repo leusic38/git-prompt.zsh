@@ -53,6 +53,7 @@ autoload -U colors && colors
 : "${ZSH_THEME_GIT_PROMPT_TAGS_PREFIX="🏷 "}"
 : "${ZSH_THEME_GIT_PROMPT_TAGS_SUFFIX=""}"
 : "${ZSH_THEME_GIT_PROMPT_TAG="%{$fg_bold[magenta]%}"}"
+: "${ZSH_THEME_GIT_PROMPT_BRANCH_MAX_LENGTH=20}"
 
 # Disable promptinit if it is loaded
 (( $+functions[promptinit] )) && {promptinit; prompt off}
@@ -100,6 +101,7 @@ function _zsh_git_prompt_git_status() {
         -v STASHED="$ZSH_THEME_GIT_PROMPT_STASHED" \
         -v CLEAN="$ZSH_THEME_GIT_PROMPT_CLEAN" \
         -v RC="%{$reset_color%}" \
+        -v MAX_LENGTH="$ZSH_THEME_GIT_PROMPT_BRANCH_MAX_LENGTH" \
         '
             BEGIN {
                 ORS = "";
@@ -174,7 +176,7 @@ function _zsh_git_prompt_git_status() {
                 } else {
                     print BRANCH;
                     gsub("%", "%%", head);
-                    print head;
+                    print substr(head, 0, MAX_LENGTH);
                 }
                 print RC;
 
@@ -185,8 +187,13 @@ function _zsh_git_prompt_git_status() {
                 } else if (UPSTREAM_TYPE == "full") {
                     print UPSTREAM_PREFIX;
                     gsub("%", "%%", upstream);
-                    print upstream;
-                    print UPSTREAM_SUFFIX;
+                    if (UPSTREAM_TYPE == "symbol") {
+                        print UPSTREAM_SYMBOL;
+                    } else if (UPSTREAM_TYPE == "full") {
+                        print UPSTREAM_PREFIX;
+                        print substr(upstream, 0, MAX_LENGTH+7);
+                        print UPSTREAM_SUFFIX;
+                    }
                 }
 
                 print RC;
